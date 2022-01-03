@@ -1,0 +1,14 @@
+{
+  "name": "notion-migration",
+  "version": "1.0.0",
+  "description": "Scripts for transferring content from Notion to Obsidian",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Thomas Bishop",
+  "license": "ISC",
+  "dependencies": {
+    "@notionhq/client": "^0.4.11"
+  }
+}
