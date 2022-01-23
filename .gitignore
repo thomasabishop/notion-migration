@@ -1,2 +1,2 @@
 node_modules/
-auth/
+src/api/auth
