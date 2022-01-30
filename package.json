@@ -4,12 +4,14 @@
   "description": "Scripts for transferring content from Notion to Obsidian",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Thomas Bishop",
   "license": "ISC",
   "dependencies": {
     "@notionhq/client": "^0.4.11",
+    "axios": "^0.25.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0"
