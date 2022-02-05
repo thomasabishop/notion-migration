@@ -1,7 +1,7 @@
 const fs = require('fs')
 const Axios = require('axios')
 
-module.exports = function (url, filepath) {
+module.exports = async function (url, filepath) {
   const response = await Axios({
     url,
     method: 'GET',
