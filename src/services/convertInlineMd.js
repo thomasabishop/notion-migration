@@ -5,9 +5,9 @@
  * @returns String in markdown
  */
 
-exports.convertToMd = (tokenType, string) => {
+exports.convertInlineMd = (tokenType, string) => {
   let markedDown
-  // Unary markdown properties:
+  // string.trim()
   switch (tokenType) {
     case 'heading_1':
       markedDown = `# ${string}<br />`
@@ -24,6 +24,9 @@ exports.convertToMd = (tokenType, string) => {
     case 'italic':
       markedDown = `_${string}_`
       break
+    case 'strikethrough':
+      markedDown = `~~${string}~~`
+      break
     case 'callout':
       markedDown = `>${string}`
       break
@@ -32,6 +35,7 @@ exports.convertToMd = (tokenType, string) => {
       break
     case 'code':
       markedDown = `\`${string}\``
+      break
     default:
       markedDown = `${string}`
   }
@@ -40,11 +44,11 @@ exports.convertToMd = (tokenType, string) => {
 /**
  * Recursively apply the above conversion for an array of token types
  */
-exports.recurseConvertToMd = (tokenArr, str) => {
-  str = this.convertToMd(tokenArr[0], str)
+exports.recurseConvertInlineMd = (tokenArr, str) => {
+  str = this.convertInlineMd(tokenArr[0], str)
   tokenArr.shift()
   if (tokenArr.length) {
-    return this.recurseConvertToMd(tokenArr, str)
+    return this.recurseConvertInlineMd(tokenArr, str)
   }
   return str
 }
