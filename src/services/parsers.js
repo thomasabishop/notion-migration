@@ -8,17 +8,34 @@ exports.parseParagraph = (block) => {
   let parsed = []
   let subBlocks = block[block.type].text
   const isLink = (block) => block.href !== null
+
   subBlocks.map((sb) => {
-    //  console.log(sb.annotations)
-    if (!isLink(sb)) {
-      // sb.annotations.color !== 'default' ? console.log(sb.plain_text) : null
-      mdStyles = getKeyByValue(sb.annotations, true)
-      parsed.push(recurseConvertInlineMd(mdStyles, sb.plain_text.trim()))
-    } else {
-      parsed.push(this.parseLink(sb.plain_text.trim(), sb.href))
+    let inlineStyles = getKeyByValue(sb.annotations, true)
+    switch (sb.type) {
+      case 'text':
+        parsed.push(recurseConvertInlineMd(inlineStyles, sb.plain_text.trim()))
+        break
+      case 'equation':
+        equation = recurseConvertInlineMd(inlineStyles, sb.plain_text.trim())
+        parsed.push(convertInlineMd('equation', equation))
+        break
     }
+
+    // if (!isLink(sb)) {
+    //   //    console.log(sb)
+    //   // sb.annotations.color !== 'default' ? console.log(sb.plain_text) : null
+    //   mdStyles = getKeyByValue(sb.annotations, true)
+    //   parsed.push(recurseConvertInlineMd(mdStyles, sb.plain_text.trim()))
+    // } else {
+    //   parsed.push(this.parseLink(sb.plain_text.trim(), sb.href))
+    // }
   })
   return parsed.join(' ')
+}
+
+exports.parseHeading = (block) => {
+  let headingContents = block[block.type].text[0].plain_text
+  return convertInlineMd(block.type, headingContents.trim())
 }
 
 exports.parseLink = (anchorText, url, asBlockLevel) => {
@@ -30,19 +47,15 @@ exports.parseBookmark = (block) => {
   return this.parseLink(block[block.type].url, block[block.type].url, true)
 }
 
-exports.parseHeading = (block) => {
-  let headingContents = block[block.type].text[0].plain_text
-  return convertInlineMd(block.type, headingContents.trim())
-}
-
 exports.parseCallout = (block) => {
   let callout = ['>']
-  // Return content array for the given block-type:
+  // Return content array for the  block-type:
   let subBlocks = block[block.type].text
   subBlocks.map((sb) => {
     mdStyles = getKeyByValue(sb.annotations, true)
     callout.push(recurseConvertInlineMd(mdStyles, sb.plain_text.trim()))
   })
+  callout.push('\n')
   return callout.join(' ')
 }
 
