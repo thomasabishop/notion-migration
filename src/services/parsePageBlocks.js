@@ -3,11 +3,13 @@ const {
   parseCallout,
   parseBlockEquation,
   parseImage,
+  parseCodeBlock,
+  parseParagraph,
+  parseBookmark,
 } = require('./parsers')
 
 module.exports = function (pageBlocks) {
   let parsed = []
-  // console.log(pageBlocks)
   for (const block of pageBlocks) {
     switch (block.type) {
       case 'heading_1':
@@ -19,6 +21,9 @@ module.exports = function (pageBlocks) {
       case 'heading_3':
         parsed.push(parseHeading(block))
         break
+      case 'paragraph':
+        parsed.push(parseParagraph(block))
+        break
       case 'callout':
         parsed.push(parseCallout(block))
         break
@@ -29,6 +34,11 @@ module.exports = function (pageBlocks) {
       case 'image':
         parsed.push(parseImage(block))
         break
+      case 'code':
+        parsed.push(parseCodeBlock(block))
+        break
+      case 'bookmark':
+        parsed.push(parseBookmark(block))
     }
   }
 
