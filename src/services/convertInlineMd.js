@@ -9,15 +9,6 @@ exports.convertInlineMd = (tokenType, string) => {
   let markedDown
   // string.trim()
   switch (tokenType) {
-    case 'heading_1':
-      markedDown = `# ${string}<br />`
-      break
-    case 'heading_2':
-      markedDown = `## ${string}<br />`
-      break
-    case 'heading_3':
-      markedDown = `### ${string}<br />`
-      break
     case 'bold':
       markedDown = `**${string}**`
       break
@@ -35,6 +26,9 @@ exports.convertInlineMd = (tokenType, string) => {
       break
     case 'code':
       markedDown = `\`${string}\``
+      break
+    case 'underline':
+      markedDown = `<u>${string}</u>`
       break
     default:
       markedDown = `${string}`

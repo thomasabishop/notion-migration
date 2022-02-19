@@ -8,7 +8,7 @@ const globals = require('./src/globals')
 const getPageIds = require('./src/api/getPageIds')
 const getPageContents = require('./src/api/getPageContents')
 const parsePageBlocks = require('./src/services/parsePageBlocks')
-
+const { parseTextBlock } = require('./src/services/parsers')
 async function migrate() {
   deleteDir(`${globals.MAIN_DIR}`)
   createDir(`${globals.MAIN_DIR}`)
@@ -16,12 +16,8 @@ async function migrate() {
   const notion = new Client({ auth: notionApiKey })
   let pageIds = await getPageIds(databaseUniqueId, notion)
   let firstPage = await getPageContents(pageIds[0], notion)
-  // console.log(firstPage)
   let firstPageConcat = parsePageBlocks(firstPage.results).join('\n')
-  //  console.log(firstPageConcat)
   fs.writeFileSync(`${globals.MAIN_DIR}/test-output.md`, firstPageConcat)
-
-  // console.log(parsePageBlocks(firstPage.results))
 }
 
 migrate()

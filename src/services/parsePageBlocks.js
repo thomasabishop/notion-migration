@@ -28,7 +28,6 @@ module.exports = function (pageBlocks) {
         parsed.push(parseCallout(block))
         break
       case 'equation':
-        // console.log(block)
         parsed.push(parseBlockEquation(block))
         break
       case 'image':

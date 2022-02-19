@@ -4,47 +4,91 @@ const getImage = require('../api/getImage')
 const { getKeyByValue } = require('../utils/getKeyByValue')
 const { convertInlineMd, recurseConvertInlineMd } = require('./convertInlineMd')
 
-exports.parseParagraph = (block) => {
-  let parsed = []
-  let subBlocks = block[block.type].text
-  const isLink = (block) => block.href !== null
-
-  subBlocks.map((sb) => {
-    let inlineStyles = getKeyByValue(sb.annotations, true)
-    switch (sb.type) {
-      case 'text':
-        parsed.push(recurseConvertInlineMd(inlineStyles, sb.plain_text.trim()))
-        break
-      case 'equation':
-        equation = recurseConvertInlineMd(inlineStyles, sb.plain_text.trim())
-        parsed.push(convertInlineMd('equation', equation))
-        break
-    }
-
-    // if (!isLink(sb)) {
-    //   //    console.log(sb)
-    //   // sb.annotations.color !== 'default' ? console.log(sb.plain_text) : null
-    //   mdStyles = getKeyByValue(sb.annotations, true)
-    //   parsed.push(recurseConvertInlineMd(mdStyles, sb.plain_text.trim()))
-    // } else {
-    //   parsed.push(this.parseLink(sb.plain_text.trim(), sb.href))
-    // }
-  })
-  return parsed.join(' ')
-}
-
-exports.parseHeading = (block) => {
-  let headingContents = block[block.type].text[0].plain_text
-  return convertInlineMd(block.type, headingContents.trim())
-}
-
-exports.parseLink = (anchorText, url, asBlockLevel) => {
+// Private functions
+const parseLink = (anchorText, url, asBlockLevel) => {
   return asBlockLevel ? `\n[${anchorText}](${url})` : `[${anchorText}](${url})`
 }
 
+const parseCaption = (caption) => {
+  let processed = []
+  caption.map((substring) => {
+    let styles = getKeyByValue(substring.annotations, true)
+    let raw = substring.plain_text.trim()
+    switch (substring.type) {
+      case 'equation':
+        processed.push(this.parseEquation(raw))
+        break
+      case 'text':
+        substring.href
+          ? processed.push(parseLink(raw, substring.href))
+          : processed.push(recurseConvertInlineMd(styles, raw))
+    }
+  })
+  processed = processed.join(' ')
+  return `<p style="font-size: 14px">${processed}</p>`
+}
+
+// Public functions
+exports.parseHeading = (block) => {
+  let processed = []
+  const subBlocks = block[block.type].text
+  subBlocks.map((sb) => {
+    let styles = getKeyByValue(sb.annotations, true)
+    let raw = sb.plain_text.trim()
+    switch (sb.type) {
+      case 'equation':
+        processed.push(this.parseEquation(raw))
+        break
+      case 'text':
+        sb.href
+          ? processed.push(parseLink(raw, sb.href))
+          : processed.push(recurseConvertInlineMd(styles, raw))
+    }
+  })
+
+  processed = processed.join(' ')
+
+  switch (block.type) {
+    case 'heading_1':
+      processed = `# ${processed}<br />`
+      break
+    case 'heading_2':
+      processed = `## ${processed}<br />`
+      break
+    case 'heading_3':
+      processed = `### ${processed}<br />`
+      break
+  }
+  console.log(processed)
+  return processed
+}
+
+exports.parseParagraph = (block) => {
+  let processed = []
+  let subBlocks = block[block.type].text
+  subBlocks.map((sb) => {
+    let styles = [
+      sb.type === 'equation' && sb.type,
+      ...getKeyByValue(sb.annotations, true),
+    ]
+    let raw = sb.plain_text.trim()
+    sb.href
+      ? processed.push(parseLink(raw, sb.href))
+      : processed.push(recurseConvertInlineMd(styles, raw))
+  })
+  processed.push('<br />')
+  return processed.join(' ')
+}
+
 exports.parseBookmark = (block) => {
-  // Add caption handler
-  return this.parseLink(block[block.type].url, block[block.type].url, true)
+  let processed = []
+  let bookmark = block[block.type]
+  if (bookmark.caption.length) {
+    processed[1] = parseCaption(bookmark.caption)
+  }
+
+  processed[0] = parseLink(block[block.type].url, block[block.type].url, true)
+  return processed.join(' ')
 }
 
 exports.parseCallout = (block) => {
@@ -59,17 +103,22 @@ exports.parseCallout = (block) => {
   return callout.join(' ')
 }
 
+exports.parseEquation = (block) => `$${block}$`
 exports.parseBlockEquation = (block) => {
   return `$$ ${block[block.type].expression} $$`
 }
 
 exports.parseCodeBlock = (block) => {
-  // TODO: Add handling for captions
+  let processed = []
   const codeObject = block[block.type]
-  const hasCaption = codeObject.caption.length > 0
+  if (codeObject.caption.length) {
+    processed[1] = parseCaption(codeObject.caption)
+  }
   let code = codeObject.text[0].plain_text.trim()
   const lang = codeObject.language
-  return ` \`\`\`${lang} \n ${code} \n  \`\`\` `
+  processed[0] = ` \`\`\`${lang} \n ${code} \n  \`\`\` \n`
+  processed.join(' ')
+  return processed
 }
 
 exports.parseImage = (block) => {
@@ -83,8 +132,13 @@ exports.parseImage = (block) => {
   ])
   const rxFileType = /\.\w{3,4}($|\?)/
   // Individuate image url:
-  const imgUrl = block[block.type].file.url
-  // console.log(block[block.type].caption[0]?.plain_text)
+  const imgBlock = []
+  const img = block[block.type]
+  const imgUrl = img.file.url
+  if (img.caption.length) {
+    imgBlock[1] = parseCaption(img.caption)
+  }
+
   // If image extension exists in map:
   if (fileExtensions.has(rxFileType.exec(imgUrl)[0])) {
     // Match file extension
@@ -98,6 +152,7 @@ exports.parseImage = (block) => {
 
     // Retrieve image from Notion database and write to image directory with local file ref
     getImage(imgUrl, localFileName)
-    return '![](img/' + hashedImgName + imgExtension + ')'
+    imgBlock[0] = '![](img/' + hashedImgName + imgExtension + ')'
+    return imgBlock.join(' ')
   }
 }
