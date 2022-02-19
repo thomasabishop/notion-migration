@@ -29,6 +29,27 @@ const parseCaption = (caption) => {
 }
 
 // Public functions
+
+exports.parseBulletedList = (block) => {
+  let processed = []
+  const subBlocks = block[block.type].text
+  subBlocks.map((sb) => {
+    let styles = getKeyByValue(sb.annotations, true)
+    let raw = sb.plain_text.trim()
+    switch (sb.type) {
+      case 'equation':
+        processed.push(this.parseEquation(raw))
+        break
+      case 'text':
+        sb.href
+          ? processed.push(parseLink(raw, sb.href))
+          : processed.push(recurseConvertInlineMd(styles, raw))
+    }
+  })
+  processed = processed.join(' ')
+  return `* ${processed}<br />`
+}
+
 exports.parseHeading = (block) => {
   let processed = []
   const subBlocks = block[block.type].text
@@ -59,7 +80,6 @@ exports.parseHeading = (block) => {
       processed = `### ${processed}<br />`
       break
   }
-  console.log(processed)
   return processed
 }
 

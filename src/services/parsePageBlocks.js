@@ -6,6 +6,7 @@ const {
   parseCodeBlock,
   parseParagraph,
   parseBookmark,
+  parseBulletedList,
 } = require('./parsers')
 
 module.exports = function (pageBlocks) {
@@ -24,6 +25,12 @@ module.exports = function (pageBlocks) {
       case 'paragraph':
         parsed.push(parseParagraph(block))
         break
+      case 'bulleted_list_item':
+        parsed.push(parseBulletedList(block))
+        break
+      // case 'numbered_list_item':
+      //   parsed.push(parseNumberedList(block))
+      //   break
       case 'callout':
         parsed.push(parseCallout(block))
         break
