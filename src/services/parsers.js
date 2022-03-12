@@ -6,7 +6,16 @@ const { convertInlineMd, recurseConvertInlineMd } = require('./convertInlineMd')
 
 // Private functions
 const parseLink = (anchorText, url, asBlockLevel) => {
-  return asBlockLevel ? `\n[${anchorText}](${url})` : `[${anchorText}](${url})`
+  // Check if local link, use Obsidian-specific link markup
+  if (!/(http|s)|www./.test(url)) {
+    url = url.replace('/', '')
+    let match = global.INDEX.filter((x) => x.pageIdStripped === url)
+    return `[[${match[0].pageTitle}]]`
+  } else {
+    return asBlockLevel
+      ? `\n[${anchorText}](${url})`
+      : `[${anchorText}](${url})`
+  }
 }
 
 const parseCaption = (caption) => {
@@ -142,7 +151,6 @@ exports.parseCodeBlock = (block) => {
 }
 
 exports.parseImage = (block) => {
-  // TODO: Add handling for captions
   const fileExtensions = new Map([
     ['.png?', '.png'],
     ['.jpg?', '.jpg'],
@@ -168,7 +176,7 @@ exports.parseImage = (block) => {
     const hashedImgName = crypto.createHash('md5').update(imgUrl).digest('hex')
     // Create local file ref
     const localFileName =
-      globals.MAIN_DIR + '/img/' + hashedImgName + imgExtension
+      global.TARGET_DIR + '/img/' + hashedImgName + imgExtension
 
     // Retrieve image from Notion database and write to image directory with local file ref
     getImage(imgUrl, localFileName)
