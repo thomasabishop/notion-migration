@@ -8,6 +8,7 @@ const {
   parseBookmark,
   parseBulletedList,
 } = require('./parsers')
+const createFrontmatter = require('./createFrontmatter')
 
 module.exports = function (pageBlocks) {
   let parsed = []
